@@ -628,7 +628,7 @@ class PrivateRoom(Room):
 
         self.send_message(
             plain,
-            irc_user_id,
+            irc_user_id.replace(f"/{event.source.nick.split('/')[1]", ""),
             formatted=formatted,
             fallback_html=f"<b>Message from {str(event.source)}</b>: {html.escape(plain)}",
         )
