@@ -101,8 +101,8 @@ class PlumbedRoom(ChannelRoom):
         self.commands.register(cmd, self.cmd_relaytag)
 
         cmd = CommandParser(prog="APPENDSERVER", description="disable appending the server address to usernames")
-        cmd.add_argument("--enable", dest="enabled" action="store_false", help="Enable appending the server name to usernames")
-        cmd.add_argument("--disable", dest="disabled" action="store_true", help="Disable appledning the server name to usernames")
+        cmd.add_argument("--enable", dest="enabled", action="store_false", help="Enable appending the server name to usernames")
+        cmd.add_argument("--disable", dest="disabled", action="store_true", help="Disable appledning the server name to usernames")
         cmd.set_defaults(enabled=None)
         self.commands.register(cmd, self.disable_server)
 
