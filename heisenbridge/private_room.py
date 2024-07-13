@@ -624,7 +624,7 @@ class PrivateRoom(Room):
         ):
             self.lazy_members[irc_user_id] = event.source.nick
 
-        print(f'\n\n\n\n===== LOOK =====\n{event.source}')
+        print(f'========== LOOK ==========\n{event.source}\n{irc_user_id}\n{event.source.nick}\n{self.serv.irc_user_id(self.network.name, self.name)}')
 
         self.send_message(
             plain,
