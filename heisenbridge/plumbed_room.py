@@ -104,7 +104,7 @@ class PlumbedRoom(ChannelRoom):
         cmd.add_argument("--enable", dest="enabled", action="store_false", help="Enable appending the server name to usernames")
         cmd.add_argument("--disable", dest="disabled", action="store_true", help="Disable appledning the server name to usernames")
         cmd.set_defaults(enabled=None)
-        self.commands.register(cmd, self.disable_server)
+        self.commands.register(cmd, self.cmd_appendserver)
 
         self.mx_register("m.room.topic", self._on_mx_room_topic)
 
@@ -329,6 +329,13 @@ class PlumbedRoom(ChannelRoom):
             await self.save()
 
         self.send_notice(f"Displaynames are {'enabled' if self.use_displaynames else 'disabled'}")
+
+    async def cmd_appendserver(self, args) -> None:
+        if args.enabled is not None:
+            self.disable_server = args.enabled
+            await self.save()
+        
+        self.send_notice(f"Appending server to nicknames is {'disabled' if self.disable_server else 'enabled'}")
 
     async def cmd_disambiguation(self, args) -> None:
         if args.enabled is not None:
