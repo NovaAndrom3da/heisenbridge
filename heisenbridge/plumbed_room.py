@@ -54,7 +54,6 @@ class PlumbedRoom(ChannelRoom):
     force_forward = True
     topic_sync = None
     relaytag = "m"
-    append_server = True
 
     def init(self) -> None:
         super().init()
@@ -99,12 +98,6 @@ class PlumbedRoom(ChannelRoom):
         cmd = CommandParser(prog="RELAYTAG", description="set RELAYMSG tag if supported by server")
         cmd.add_argument("tag", nargs="?", help="new tag")
         self.commands.register(cmd, self.cmd_relaytag)
-
-        cmd = CommandParser(prog="APPENDSERVER", description="disable appending the server address to usernames")
-        cmd.add_argument("--enable", dest="enabled", action="store_true", help="Enable appending the server name to usernames")
-        cmd.add_argument("--disable", dest="disabled", action="store_false", help="Disable appledning the server name to usernames")
-        cmd.set_defaults(enabled=None)
-        self.commands.register(cmd, self.cmd_appendserver)
 
         self.mx_register("m.room.topic", self._on_mx_room_topic)
 
@@ -179,9 +172,6 @@ class PlumbedRoom(ChannelRoom):
         if "relaytag" in config:
             self.relaytag = config["relaytag"]
 
-        if "appendserver" in config:
-            self.append_server = config["appendserver"]
-
     def to_config(self) -> dict:
         return {
             **(super().to_config()),
@@ -191,7 +181,6 @@ class PlumbedRoom(ChannelRoom):
             "allow_notice": self.allow_notice,
             "topic_sync": self.topic_sync,
             "relaytag": self.relaytag,
-            "appendserver": self.append_server
         }
 
     # topic updates from channel state replies are ignored because formatting changes
@@ -227,9 +216,6 @@ class PlumbedRoom(ChannelRoom):
         if self.use_zwsp:
             sender = f"{name[:2]}\u200B{name[2:]}:{server[:1]}\u200B{server[1:]}"
 
-        if not self.append_server:
-            sender = sender.split(":", 1)[0]
-
         if self.use_displaynames and event.sender in self.displaynames:
             sender_displayname = self.displaynames[event.sender]
 
@@ -245,6 +231,9 @@ class PlumbedRoom(ChannelRoom):
                 sender_displayname = f"{sender_displayname[:1]}\u200B{sender_displayname[1:]}"
 
             sender = sender_displayname
+
+        else:
+            sender = sender.split(":", 1)[0]
 
         # limit plumbed sender max length to 100 characters
         sender = sender[:100]
@@ -333,13 +322,6 @@ class PlumbedRoom(ChannelRoom):
             await self.save()
 
         self.send_notice(f"Displaynames are {'enabled' if self.use_displaynames else 'disabled'}")
-
-    async def cmd_appendserver(self, args) -> None:
-        if args.enabled is not None:
-            self.append_server = args.enabled
-            await self.save()
-        
-        self.send_notice(f"Appending server to nicknames is {'enabled' if self.append_server else 'disabled'}")
 
     async def cmd_disambiguation(self, args) -> None:
         if args.enabled is not None:
