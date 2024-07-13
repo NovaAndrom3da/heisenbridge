@@ -179,6 +179,9 @@ class PlumbedRoom(ChannelRoom):
         if "relaytag" in config:
             self.relaytag = config["relaytag"]
 
+        if "appendserver" in config:
+            self.append_server = config["appendserver"]
+
     def to_config(self) -> dict:
         return {
             **(super().to_config()),
@@ -188,6 +191,7 @@ class PlumbedRoom(ChannelRoom):
             "allow_notice": self.allow_notice,
             "topic_sync": self.topic_sync,
             "relaytag": self.relaytag,
+            "appendserver": self.append_server
         }
 
     # topic updates from channel state replies are ignored because formatting changes
