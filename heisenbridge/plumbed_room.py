@@ -223,7 +223,7 @@ class PlumbedRoom(ChannelRoom):
         if self.use_zwsp:
             sender = f"{name[:2]}\u200B{name[2:]}:{server[:1]}\u200B{server[1:]}"
 
-        if self.disable_server:
+        if not self.append_server:
             sender = sender.split(":", 1)[0]
 
         if self.use_displaynames and event.sender in self.displaynames:
