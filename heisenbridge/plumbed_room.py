@@ -54,7 +54,7 @@ class PlumbedRoom(ChannelRoom):
     force_forward = True
     topic_sync = None
     relaytag = "m"
-    disable_server = False
+    append_server = True
 
     def init(self) -> None:
         super().init()
@@ -101,8 +101,8 @@ class PlumbedRoom(ChannelRoom):
         self.commands.register(cmd, self.cmd_relaytag)
 
         cmd = CommandParser(prog="APPENDSERVER", description="disable appending the server address to usernames")
-        cmd.add_argument("--enable", dest="enabled", action="store_false", help="Enable appending the server name to usernames")
-        cmd.add_argument("--disable", dest="disabled", action="store_true", help="Disable appledning the server name to usernames")
+        cmd.add_argument("--enable", dest="enabled", action="store_true", help="Enable appending the server name to usernames")
+        cmd.add_argument("--disable", dest="disabled", action="store_false", help="Disable appledning the server name to usernames")
         cmd.set_defaults(enabled=None)
         self.commands.register(cmd, self.cmd_appendserver)
 
@@ -332,10 +332,10 @@ class PlumbedRoom(ChannelRoom):
 
     async def cmd_appendserver(self, args) -> None:
         if args.enabled is not None:
-            self.disable_server = args.enabled
+            self.append_server = args.enabled
             await self.save()
         
-        self.send_notice(f"Appending server to nicknames is {'disabled' if self.disable_server else 'enabled'}")
+        self.send_notice(f"Appending server to nicknames is {'enabled' if self.append_server else 'disabled'}")
 
     async def cmd_disambiguation(self, args) -> None:
         if args.enabled is not None:
