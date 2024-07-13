@@ -624,13 +624,13 @@ class PrivateRoom(Room):
         ):
             self.lazy_members[irc_user_id] = event.source.nick
 
-        print(f'========== LOOK ==========\n{event.source}\n{irc_user_id}\n{event.source.nick}\n{self.serv.irc_user_id(self.network.name, self.name)}')
+        print(f'========== LOOK ==========\n{irc_user_id}\n{plain}\n{formatted}')
 
         self.send_message(
             plain,
-            irc_user_id.replace(f"/{event.source.nick.split('/')[1]}", ""),
+            irc_user_id,
             formatted=formatted,
-            fallback_html=f"<b>Message from {str(event.source)}</b>: {html.escape(plain)}",
+            fallback_html=f"&lt;{irc_user_id}&gt; {html.escape(plain)}",
         )
 
         # lazy update displayname if we detect a change
