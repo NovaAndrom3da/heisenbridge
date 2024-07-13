@@ -54,6 +54,7 @@ class PlumbedRoom(ChannelRoom):
     force_forward = True
     topic_sync = None
     relaytag = "m"
+    disable_server = False
 
     def init(self) -> None:
         super().init()
@@ -98,6 +99,12 @@ class PlumbedRoom(ChannelRoom):
         cmd = CommandParser(prog="RELAYTAG", description="set RELAYMSG tag if supported by server")
         cmd.add_argument("tag", nargs="?", help="new tag")
         self.commands.register(cmd, self.cmd_relaytag)
+
+        cmd = CommandParser(prog="APPENDSERVER", description="disable appending the server address to usernames")
+        cmd.add_argument("--enable", dest="enabled" action="store_false", help="Enable appending the server name to usernames")
+        cmd.add_argument("--disable", dest="disabled" action="store_true", help="Disable appledning the server name to usernames")
+        cmd.set_defaults(enabled=None)
+        self.commands.register(cmd, self.disable_server)
 
         self.mx_register("m.room.topic", self._on_mx_room_topic)
 
@@ -215,6 +222,9 @@ class PlumbedRoom(ChannelRoom):
         # add ZWSP to sender to avoid pinging on IRC
         if self.use_zwsp:
             sender = f"{name[:2]}\u200B{name[2:]}:{server[:1]}\u200B{server[1:]}"
+
+        if self.disable_server:
+            sender = sender.split(":", 1)[0]
 
         if self.use_displaynames and event.sender in self.displaynames:
             sender_displayname = self.displaynames[event.sender]
