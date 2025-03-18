@@ -15,6 +15,8 @@ from urllib.parse import urlparse
 from mautrix.api import Method
 from mautrix.api import SynapseAdminPath
 from mautrix.errors import MatrixStandardRequestError
+from mautrix.types import MessageEvent
+from mautrix.types import TextMessageEventContent
 from mautrix.types.event.state import JoinRestriction
 from mautrix.types.event.state import JoinRestrictionType
 from mautrix.types.event.state import JoinRule
@@ -410,7 +412,9 @@ class PrivateRoom(Room):
         cmd.set_defaults(enabled=None)
         self.commands.register(cmd, self.cmd_reacts)
 
-        cmd = CommandParser(prog="PREFIXALL", description="prefix all bridged IRC lines with the user's nick, instead of just the first")
+        cmd = CommandParser(
+            prog="PREFIXALL", description="prefix all bridged IRC lines with the user's nick, instead of just the first"
+        )
         cmd.add_argument("--enable", dest="enabled", action="store_true", help="Prefix all lines")
         cmd.add_argument("--disable", dest="enabled", action="store_false", help="Only prefix first line")
         cmd.set_defaults(enabled=None)
@@ -704,9 +708,9 @@ class PrivateRoom(Room):
         content = event.content
 
         if content.formatted_body:
-            lines = str(await self.parser.parse(content.formatted_body)).split("\n")
+            lines = str(await self.parser.parse(content.formatted_body)).replace("\r", "").split("\n")
         elif content.body:
-            lines = content.body.split("\n")
+            lines = content.body.replace("\r", "").split("\n")
         else:
             logging.warning("_process_event_content called with no usable body")
             return
@@ -847,7 +851,19 @@ class PrivateRoom(Room):
         if str(event.content.msgtype) == "m.emote":
             await self._send_message(event, self.network.conn.action)
         elif str(event.content.msgtype) in ["m.image", "m.file", "m.audio", "m.video"]:
-            self.network.conn.privmsg(self.name, self.serv.mxc_to_url(event.content.url, event.content.body))
+            if event.content.filename and event.content.filename != event.content.body:
+                new_body = self.serv.mxc_to_url(event.content.url, event.content.filename) + "\n" + event.content.body
+            else:
+                new_body = self.serv.mxc_to_url(event.content.url, event.content.body)
+            media_event = MessageEvent(
+                sender=event.sender,
+                type=None,
+                room_id=None,
+                event_id=None,
+                timestamp=None,
+                content=TextMessageEventContent(body=new_body),
+            )
+            await self._send_message(media_event, self.network.conn.privmsg)
             if self.use_reacts:
                 self.react(event.event_id, "\U0001F517")  # link
             self.media.append([event.event_id, event.content.url])
